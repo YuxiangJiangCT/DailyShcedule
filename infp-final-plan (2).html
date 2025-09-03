@@ -1,0 +1,1067 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>INFP秋招生活管理系统</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, 'Segoe UI', 'PingFang SC', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 10px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            min-height: 90vh;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+            padding: 25px;
+            text-align: center;
+        }
+        
+        .header h1 {
+            font-size: 1.8em;
+            margin-bottom: 8px;
+        }
+        
+        .header p {
+            opacity: 0.95;
+            font-size: 1em;
+        }
+        
+        .current-week {
+            background: #fff;
+            color: #dc2626;
+            padding: 8px 15px;
+            border-radius: 20px;
+            display: inline-block;
+            margin-top: 10px;
+            font-weight: bold;
+        }
+        
+        .tabs {
+            display: flex;
+            background: #f7fafc;
+            border-bottom: 2px solid #e2e8f0;
+            padding: 0 15px;
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+        
+        .tab {
+            padding: 15px 20px;
+            cursor: pointer;
+            border: none;
+            background: none;
+            font-size: 0.95em;
+            color: #4a5568;
+            font-weight: 500;
+            transition: all 0.3s;
+            white-space: nowrap;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .tab:hover {
+            color: #667eea;
+        }
+        
+        .tab.active {
+            color: #667eea;
+            border-bottom: 3px solid #667eea;
+            margin-bottom: -2px;
+        }
+        
+        .tab-icon {
+            font-size: 1.2em;
+        }
+        
+        .content {
+            padding: 25px;
+        }
+        
+        .tab-panel {
+            display: none;
+            animation: fadeIn 0.5s;
+        }
+        
+        .tab-panel.active {
+            display: block;
+        }
+        
+        /* 今日面板样式 */
+        .today-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .today-timeline {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 15px;
+        }
+        
+        .today-tasks {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 15px;
+        }
+        
+        .time-block {
+            background: white;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 10px;
+            border-left: 4px solid #667eea;
+            display: flex;
+            gap: 15px;
+        }
+        
+        .time-block.current {
+            background: #fef3c7;
+            border-left-color: #f59e0b;
+        }
+        
+        .time-block.completed {
+            opacity: 0.6;
+        }
+        
+        .time-label {
+            font-weight: bold;
+            color: #2d3748;
+            min-width: 80px;
+        }
+        
+        .task-item {
+            padding: 10px;
+            margin: 8px 0;
+            background: white;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .task-item:hover {
+            transform: translateX(5px);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        
+        .task-checkbox {
+            width: 20px;
+            height: 20px;
+            border: 2px solid #667eea;
+            border-radius: 4px;
+        }
+        
+        .task-checkbox:checked {
+            background: #667eea;
+        }
+        
+        /* 周计划样式 */
+        .week-progress {
+            background: white;
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+            border: 2px solid #e2e8f0;
+        }
+        
+        .progress-bar {
+            width: 100%;
+            height: 30px;
+            background: #e2e8f0;
+            border-radius: 15px;
+            overflow: hidden;
+            margin: 15px 0;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea, #764ba2);
+            border-radius: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            transition: width 0.5s;
+        }
+        
+        .week-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px;
+        }
+        
+        .week-card {
+            background: white;
+            padding: 15px;
+            border-radius: 10px;
+            border: 2px solid #e2e8f0;
+            transition: all 0.3s;
+        }
+        
+        .week-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+        
+        .week-card.current {
+            border-color: #f5576c;
+            background: linear-gradient(135deg, #f5576c10 0%, #f093fb10 100%);
+        }
+        
+        .week-card.completed {
+            border-color: #10b981;
+            background: #f0fdf4;
+        }
+        
+        /* 快速行动卡片 */
+        .action-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+        
+        .action-card {
+            background: white;
+            padding: 15px;
+            border-radius: 10px;
+            border: 2px solid #e2e8f0;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .action-card:hover {
+            transform: scale(1.05);
+            border-color: #667eea;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+        
+        .action-icon {
+            font-size: 2em;
+            margin-bottom: 10px;
+        }
+        
+        /* 饮食面板 */
+        .meal-timeline {
+            display: grid;
+            gap: 15px;
+        }
+        
+        .meal-card {
+            background: white;
+            padding: 15px;
+            border-radius: 10px;
+            border-left: 4px solid #10b981;
+        }
+        
+        .meal-card h3 {
+            color: #2d3748;
+            margin-bottom: 10px;
+        }
+        
+        /* 购物清单 */
+        .shopping-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+        }
+        
+        .shopping-card {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            border: 2px solid #e2e8f0;
+        }
+        
+        .shopping-card h3 {
+            color: #667eea;
+            margin-bottom: 15px;
+        }
+        
+        .shopping-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 8px 0;
+            border-bottom: 1px solid #f3f4f6;
+        }
+        
+        /* 提示框 */
+        .alert {
+            background: #fef3c7;
+            border-left: 4px solid #f59e0b;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 15px 0;
+        }
+        
+        .alert-urgent {
+            background: #fee2e2;
+            border-left-color: #dc2626;
+        }
+        
+        .alert-success {
+            background: #dcfce7;
+            border-left-color: #22c55e;
+        }
+        
+        /* 统计卡片 */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+        
+        .stat-card {
+            background: white;
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+            border: 2px solid #e2e8f0;
+        }
+        
+        .stat-value {
+            font-size: 1.8em;
+            font-weight: bold;
+            color: #667eea;
+        }
+        
+        .stat-label {
+            color: #6b7280;
+            font-size: 0.9em;
+            margin-top: 5px;
+        }
+        
+        /* 浮动按钮 */
+        .float-button {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1.5em;
+            cursor: pointer;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+            transition: all 0.3s;
+        }
+        
+        .float-button:hover {
+            transform: scale(1.1);
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        @media (max-width: 768px) {
+            .today-grid {
+                grid-template-columns: 1fr;
+            }
+            .tabs {
+                padding: 0 10px;
+            }
+            .tab {
+                padding: 12px 15px;
+                font-size: 0.85em;
+            }
+            .content {
+                padding: 15px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎯 INFP秋招生活管理系统</h1>
+            <p>科学作息 + 高效求职 + 健康饮食</p>
+            <div class="current-week">📅 当前：第1周 - 建立基础</div>
+        </div>
+        
+        <div class="tabs">
+            <button class="tab active" onclick="showTab('today')">
+                <span class="tab-icon">📍</span>今日
+            </button>
+            <button class="tab" onclick="showTab('week')">
+                <span class="tab-icon">📈</span>周计划
+            </button>
+            <button class="tab" onclick="showTab('schedule')">
+                <span class="tab-icon">⏰</span>作息
+            </button>
+            <button class="tab" onclick="showTab('meals')">
+                <span class="tab-icon">🍱</span>饮食
+            </button>
+            <button class="tab" onclick="showTab('shopping')">
+                <span class="tab-icon">🛒</span>购物
+            </button>
+            <button class="tab" onclick="showTab('emergency')">
+                <span class="tab-icon">🆘</span>应急
+            </button>
+            <button class="tab" onclick="showTab('stats')">
+                <span class="tab-icon">📊</span>统计
+            </button>
+        </div>
+        
+        <div class="content">
+            <!-- 今日面板 -->
+            <div id="today" class="tab-panel active">
+                <h2 style="color: #2d3748; margin-bottom: 20px;">📍 今日安排</h2>
+                
+                <div class="alert alert-urgent">
+                    <strong>🔴 今日最重要：</strong>
+                    晚上9点把手机充电在客厅！这是改变的第一步。
+                </div>
+                
+                <div class="today-grid">
+                    <div class="today-timeline">
+                        <h3 style="color: #2d3748; margin-bottom: 15px;">时间轴（根据今天是周几自动调整）</h3>
+                        
+                        <div class="time-block">
+                            <span class="time-label">9:30</span>
+                            <div>
+                                <strong>起床程序</strong><br>
+                                不看手机 → 拉窗帘 → 喝水500ml
+                            </div>
+                        </div>
+                        
+                        <div class="time-block current">
+                            <span class="time-label">9:45-10:00</span>
+                            <div>
+                                <strong>All Ears English</strong><br>
+                                影子跟读10-15分钟
+                            </div>
+                        </div>
+                        
+                        <div class="time-block">
+                            <span class="time-label">11:00-14:00</span>
+                            <div>
+                                <strong>深度工作</strong><br>
+                                LeetCode 2题 + 投简历3份 + Startup
+                            </div>
+                        </div>
+                        
+                        <div class="time-block">
+                            <span class="time-label">12:00</span>
+                            <div>
+                                <strong>破禁食餐</strong><br>
+                                Tvorog 250g + 黑面包 + Kefir
+                            </div>
+                        </div>
+                        
+                        <div class="time-block">
+                            <span class="time-label">15:00</span>
+                            <div>
+                                <strong>午餐</strong><br>
+                                Pelmeni 25个 + Smetana
+                            </div>
+                        </div>
+                        
+                        <div class="time-block">
+                            <span class="time-label">16:30-17:30</span>
+                            <div>
+                                <strong>运动/课程</strong><br>
+                                根据今天课表调整
+                            </div>
+                        </div>
+                        
+                        <div class="time-block">
+                            <span class="time-label">21:00</span>
+                            <div>
+                                <strong>🔴 手机充电</strong><br>
+                                放客厅，开始无屏幕时间
+                            </div>
+                        </div>
+                        
+                        <div class="time-block">
+                            <span class="time-label">23:30</span>
+                            <div>
+                                <strong>睡眠准备</strong><br>
+                                热水澡 → 冥想 → 00:00躺床
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="today-tasks">
+                        <h3 style="color: #2d3748; margin-bottom: 15px;">✅ 今日必做</h3>
+                        
+                        <div class="task-item">
+                            <input type="checkbox" class="task-checkbox">
+                            <span>早晨日光暴露 5-10分钟</span>
+                        </div>
+                        
+                        <div class="task-item">
+                            <input type="checkbox" class="task-checkbox">
+                            <span>All Ears English 影子跟读</span>
+                        </div>
+                        
+                        <div class="task-item">
+                            <input type="checkbox" class="task-checkbox">
+                            <span>LeetCode 至少1题</span>
+                        </div>
+                        
+                        <div class="task-item">
+                            <input type="checkbox" class="task-checkbox">
+                            <span>投递 3-5 份简历</span>
+                        </div>
+                        
+                        <div class="task-item">
+                            <input type="checkbox" class="task-checkbox">
+                            <span>Startup 90分钟</span>
+                        </div>
+                        
+                        <div class="task-item">
+                            <input type="checkbox" class="task-checkbox">
+                            <span>YouTube无字幕 15分钟</span>
+                        </div>
+                        
+                        <div class="task-item">
+                            <input type="checkbox" class="task-checkbox">
+                            <span>21:00 手机充电在客厅</span>
+                        </div>
+                        
+                        <div class="task-item">
+                            <input type="checkbox" class="task-checkbox">
+                            <span>Pastor书籍 30分钟</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="action-cards">
+                    <div class="action-card" onclick="setReminder()">
+                        <div class="action-icon">⏰</div>
+                        <div>设置21:00提醒</div>
+                    </div>
+                    <div class="action-card" onclick="startPomodoro(25)">
+                        <div class="action-icon">⏱️</div>
+                        <div>开始深度工作</div>
+                    </div>
+                    <div class="action-card" onclick="showTab('emergency')">
+                        <div class="action-icon">🆘</div>
+                        <div>查看应急方案</div>
+                    </div>
+                    <div class="action-card" onclick="showTab('meals')">
+                        <div class="action-icon">🍱</div>
+                        <div>今天吃什么</div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 周计划面板 -->
+            <div id="week" class="tab-panel">
+                <h2 style="color: #2d3748; margin-bottom: 20px;">📈 4周渐进计划</h2>
+                
+                <div class="week-progress">
+                    <h3>整体进度</h3>
+                    <div class="progress-bar">
+                        <div class="progress-fill" style="width: 25%;">第1周进行中</div>
+                    </div>
+                    <p style="color: #6b7280;">目标：从12点睡9:30起 → 11点睡7点起</p>
+                </div>
+                
+                <div class="week-grid">
+                    <div class="week-card current">
+                        <h3>📅 第1周：建立基础</h3>
+                        <p><strong>起床：</strong>9:30（固定）</p>
+                        <p><strong>睡觉：</strong>00:00</p>
+                        <hr style="margin: 10px 0; border: none; border-top: 1px solid #e2e8f0;">
+                        <ul style="list-style: none; padding: 0;">
+                            <li>✅ 21:00手机放客厅</li>
+                            <li>✅ 固定作息时间</li>
+                            <li>✅ 每日All Ears English</li>
+                            <li>✅ 投递5份简历/天</li>
+                        </ul>
+                        <div class="alert" style="margin-top: 10px;">
+                            <strong>本周重点：</strong>建立习惯，不求完美
+                        </div>
+                    </div>
+                    
+                    <div class="week-card">
+                        <h3>📅 第2周：小步前移</h3>
+                        <p><strong>起床：</strong>9:15（-15分钟）</p>
+                        <p><strong>睡觉：</strong>23:45</p>
+                        <hr style="margin: 10px 0; border: none; border-top: 1px solid #e2e8f0;">
+                        <ul style="list-style: none; padding: 0;">
+                            <li>⭕ 必须出门10分钟</li>
+                            <li>⭕ 14:00后禁咖啡</li>
+                            <li>⭕ Focus模式设置</li>
+                            <li>⭕ 晨间页面替代手机</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="week-card">
+                        <h3>📅 第3周：关键跳跃</h3>
+                        <p><strong>起床：</strong>8:30（-45分钟）</p>
+                        <p><strong>睡觉：</strong>23:15</p>
+                        <hr style="margin: 10px 0; border: none; border-top: 1px solid #e2e8f0;">
+                        <ul style="list-style: none; padding: 0;">
+                            <li>⭕ 使用光疗灯</li>
+                            <li>⭕ 9:30开始深度工作</li>
+                            <li>⭕ 16:30固定运动</li>
+                            <li>⭕ LeetCode 2题/天</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="week-card">
+                        <h3>📅 第4周：稳定目标</h3>
+                        <p><strong>起床：</strong>7:00-7:30（目标）</p>
+                        <p><strong>睡觉：</strong>22:30-23:00</p>
+                        <hr style="margin: 10px 0; border: none; border-top: 1px solid #e2e8f0;">
+                        <ul style="list-style: none; padding: 0;">
+                            <li>⭕ 自然醒来</li>
+                            <li>⭕ 3小时深度工作</li>
+                            <li>⭕ 每日5份简历</li>
+                            <li>⭕ 完全掌控节奏</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 作息面板 -->
+            <div id="schedule" class="tab-panel">
+                <h2 style="color: #2d3748; margin-bottom: 20px;">⏰ 作息安排</h2>
+                
+                <div class="alert">
+                    <strong>注意：</strong>周二、周四有晚课，作息会有调整
+                </div>
+                
+                <h3 style="color: #667eea; margin: 20px 0;">周一/周三/周五（正常作息）</h3>
+                <div class="meal-timeline">
+                    <div class="meal-card">
+                        <h3>🌅 7:00-9:00 早晨启动</h3>
+                        <ul>
+                            <li>7:00 起床 → 立即喝水500ml</li>
+                            <li>7:05-7:15 户外日光（最重要！）</li>
+                            <li>7:15-7:30 All Ears English影子跟读</li>
+                            <li>7:30-8:30 早餐（不喝咖啡）</li>
+                            <li>8:30-9:00 研究目标公司+定制简历</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="meal-card">
+                        <h3>🧠 9:00-12:00 深度工作</h3>
+                        <ul>
+                            <li>9:00 第一杯咖啡</li>
+                            <li>9:00-10:30 LeetCode 2-3题</li>
+                            <li>10:30-10:45 休息（站立/走动）</li>
+                            <li>10:45-11:30 投递3-5份精选简历</li>
+                            <li>11:30-12:00 Startup核心开发</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="meal-card">
+                        <h3>🌙 21:00-23:00 睡前程序</h3>
+                        <ul>
+                            <li>21:00 手机充电在客厅（最关键！）</li>
+                            <li>21:00-21:30 INFP创意时光</li>
+                            <li>21:30 热水澡/泡脚</li>
+                            <li>22:00 调暗灯光，远离屏幕</li>
+                            <li>22:30 床上祷告/冥想</li>
+                            <li>23:00 熄灯入睡</li>
+                        </ul>
+                    </div>
+                </div>
+                
+                <h3 style="color: #dc2626; margin: 20px 0;">周二/周四（晚课调整）</h3>
+                <div class="alert alert-urgent">
+                    <strong>周二：</strong>INFO 5920 到21:00+<br>
+                    <strong>周四：</strong>TECH 5900 到22:00<br>
+                    <strong>对策：</strong>这两天接受晚睡，其他天补偿
+                </div>
+            </div>
+            
+            <!-- 饮食面板 -->
+            <div id="meals" class="tab-panel">
+                <h2 style="color: #2d3748; margin-bottom: 20px;">🍱 Tashkent Market饮食方案</h2>
+                
+                <div class="meal-timeline">
+                    <div class="meal-card">
+                        <h3>🌅 12:00 - 破禁食餐</h3>
+                        <p><strong>东欧早餐组合：</strong></p>
+                        <ul>
+                            <li>Tvorog（奶渣）250g + 蜂蜜 + 核桃</li>
+                            <li>黑面包 2-3片 + 黄油</li>
+                            <li>水煮蛋 2个（熟食区买）</li>
+                            <li>Kefir 400ml</li>
+                            <li>酸黄瓜几根</li>
+                        </ul>
+                        <p style="color: #059669; margin-top: 10px;">
+                            💡 准备时间：3分钟 | 蛋白质：35g+
+                        </p>
+                    </div>
+                    
+                    <div class="meal-card">
+                        <h3>☀️ 15:00 - 午餐大餐</h3>
+                        <p><strong>选择1：汤+饺子组合</strong></p>
+                        <ul>
+                            <li>Borsch罗宋汤 500ml（微波加热）</li>
+                            <li>Pelmeni 25个 + Smetana厚厚一层</li>
+                            <li>黑面包 2-3片</li>
+                            <li>酸菜 100g（助消化）</li>
+                        </ul>
+                        <p><strong>选择2：烤肉套餐</strong></p>
+                        <ul>
+                            <li>烤肉串 2串（羊肉或鸡肉）</li>
+                            <li>荞麦 200g（熟食区现成）</li>
+                            <li>新鲜蔬菜沙拉 200g</li>
+                            <li>Lavash薄饼 2张</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="meal-card">
+                        <h3>🌙 18:00-19:00 - 晚餐</h3>
+                        <p><strong>丰盛晚餐：</strong></p>
+                        <ul>
+                            <li>Kotlety肉饼 3个（微波加热）</li>
+                            <li>土豆泥 250g（熟食区）</li>
+                            <li>甜菜沙拉 150g</li>
+                            <li>酸奶油 + 青葱</li>
+                            <li>Kompot果汁 500ml</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="meal-card">
+                        <h3>🧠 下午3点 - LeetCode加餐</h3>
+                        <ul>
+                            <li>Halva（芝麻糖）50g - 快速能量</li>
+                            <li>葵花籽一大把</li>
+                            <li>Pryaniki蜂蜜饼 2-3块</li>
+                            <li>浓茶配柠檬</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 购物面板 -->
+            <div id="shopping" class="tab-panel">
+                <h2 style="color: #2d3748; margin-bottom: 20px;">🛒 每周购物清单</h2>
+                
+                <div class="alert alert-success">
+                    <strong>购物安排：</strong>周日去Tashkent大采购，周三快速补货
+                </div>
+                
+                <div class="shopping-grid">
+                    <div class="shopping-card">
+                        <h3>Tashkent Market主力清单</h3>
+                        
+                        <div class="shopping-item">
+                            <input type="checkbox" class="task-checkbox">
+                            <span><strong>Pelmeni</strong>（俄式饺子）- 2kg装</span>
+                        </div>
+                        <div class="shopping-item">
+                            <input type="checkbox" class="task-checkbox">
+                            <span><strong>Tvorog</strong>（奶渣）- 1.5kg</span>
+                        </div>
+                        <div class="shopping-item">
+                            <input type="checkbox" class="task-checkbox">
+                            <span><strong>Kefir</strong>（酸奶饮品）- 3大瓶</span>
+                        </div>
+                        <div class="shopping-item">
+                            <input type="checkbox" class="task-checkbox">
+                            <span><strong>烤肉串</strong> - 8-10串</span>
+                        </div>
+                        <div class="shopping-item">
+                            <input type="checkbox" class="task-checkbox">
+                            <span><strong>Smetana</strong>（酸奶油）- 1kg</span>
+                        </div>
+                        <div class="shopping-item">
+                            <input type="checkbox" class="task-checkbox">
+                            <span><strong>Kotlety</strong>（肉饼）- 10个</span>
+                        </div>
+                        <div class="shopping-item">
+                            <input type="checkbox" class="task-checkbox">
+                            <span><strong>黑面包</strong> - 2条</span>
+                        </div>
+                        <div class="shopping-item">
+                            <input type="checkbox" class="task-checkbox">
+                            <span><strong>酸黄瓜</strong> - 2大罐</span>
+                        </div>
+                        <div class="shopping-item">
+                            <input type="checkbox" class="task-checkbox">
+                            <span><strong>Borsch</strong>（罗宋汤）- 1L</span>
+                        </div>
+                        <div class="shopping-item">
+                            <input type="checkbox" class="task-checkbox">
+                            <span><strong>Halva</strong>（芝麻糖）- 300g</span>
+                        </div>
+                    </div>
+                    
+                    <div class="shopping-card">
+                        <h3>Trader Joe's补充清单</h3>
+                        
+                        <div class="shopping-item">
+                            <input type="checkbox" class="task-checkbox">
+                            <span>牛油果 - 4个</span>
+                        </div>
+                        <div class="shopping-item">
+                            <input type="checkbox" class="task-checkbox">
+                            <span>香蕉 - 1串</span>
+                        </div>
+                        <div class="shopping-item">
+                            <input type="checkbox" class="task-checkbox">
+                            <span>蓝莓 - 2盒</span>
+                        </div>
+                        <div class="shopping-item">
+                            <input type="checkbox" class="task-checkbox">
+                            <span>Greek Yogurt - 大桶</span>
+                        </div>
+                        <div class="shopping-item">
+                            <input type="checkbox" class="task-checkbox">
+                            <span>Cold Brew咖啡 - 1瓶</span>
+                        </div>
+                        <div class="shopping-item">
+                            <input type="checkbox" class="task-checkbox">
+                            <span>能量棒 - 1盒</span>
+                        </div>
+                        <div class="shopping-item">
+                            <input type="checkbox" class="task-checkbox">
+                            <span>Mac & Cheese - 3盒（应急）</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="alert" style="margin-top: 20px;">
+                    <strong>💰 预算：</strong>
+                    Tashkent $60-80/周 + TJ $30-40/周 = 总计 $90-120/周
+                </div>
+            </div>
+            
+            <!-- 应急面板 -->
+            <div id="emergency" class="tab-panel">
+                <h2 style="color: #2d3748; margin-bottom: 20px;">🆘 应急处理方案</h2>
+                
+                <div class="meal-timeline">
+                    <div class="meal-card">
+                        <h3>😴 睡过头了</h3>
+                        <ul>
+                            <li>✅ 不要恐慌或自责（INFP容易内疚）</li>
+                            <li>✅ 直接从当前时间开始执行</li>
+                            <li>✅ 跳过已错过的，不要试图"补"</li>
+                            <li>✅ 晚上正常时间睡觉（不要熬夜补偿）</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="meal-card">
+                        <h3>🌙 失眠睡不着</h3>
+                        <ul>
+                            <li>❌ 绝对不看手机！不看时间！</li>
+                            <li>✅ 起来写日记10分钟（INFP疗愈法）</li>
+                            <li>✅ 做10分钟冥想或祷告</li>
+                            <li>✅ 听Yoga Nidra音频</li>
+                            <li>✅ 第二天正常起床（即使很困）</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="meal-card">
+                        <h3>🍔 太饿了/没准备食物</h3>
+                        <ul>
+                            <li>冰箱常备：Greek Yogurt、水煮蛋、坚果</li>
+                            <li>快速选择：TJ Mac & Cheese（3分钟）</li>
+                            <li>深夜选择：只喝Kefir或温牛奶</li>
+                            <li>应急外卖：限制$15以内，不要罪恶感</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="meal-card">
+                        <h3>📱 想刷手机</h3>
+                        <ul>
+                            <li>设置15分钟倒计时</li>
+                            <li>冲动像海浪，等10分钟会消退</li>
+                            <li>替代：写3个感恩的事</li>
+                            <li>或者：做5个深呼吸</li>
+                            <li>记录：什么触发了这个冲动？</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="meal-card">
+                        <h3>😔 被拒/情绪低落</h3>
+                        <ul>
+                            <li>立即运动15分钟（最有效！）</li>
+                            <li>给自己写一封鼓励信</li>
+                            <li>看之前的成功记录</li>
+                            <li>允许自己难过30分钟</li>
+                            <li>然后做一件小的productive事情</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 统计面板 -->
+            <div id="stats" class="tab-panel">
+                <h2 style="color: #2d3748; margin-bottom: 20px;">📊 每周目标统计</h2>
+                
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-value">20-25</div>
+                        <div class="stat-label">简历投递/周</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value">10-15</div>
+                        <div class="stat-label">LeetCode题/周</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value">10-12h</div>
+                        <div class="stat-label">Startup开发</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value">7h</div>
+                        <div class="stat-label">英语学习</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value">5h</div>
+                        <div class="stat-label">运动时间</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value">49-56h</div>
+                        <div class="stat-label">睡眠时间</div>
+                    </div>
+                </div>
+                
+                <h3 style="color: #2d3748; margin: 20px 0;">本周进度追踪</h3>
+                <div style="background: white; padding: 20px; border-radius: 10px;">
+                    <div style="margin: 15px 0;">
+                        <strong>简历投递：</strong>
+                        <div class="progress-bar">
+                            <div class="progress-fill" style="width: 20%; background: #3b82f6;">5/25</div>
+                        </div>
+                    </div>
+                    <div style="margin: 15px 0;">
+                        <strong>LeetCode：</strong>
+                        <div class="progress-bar">
+                            <div class="progress-fill" style="width: 30%; background: #10b981;">3/10</div>
+                        </div>
+                    </div>
+                    <div style="margin: 15px 0;">
+                        <strong>手机管理：</strong>
+                        <div class="progress-bar">
+                            <div class="progress-fill" style="width: 70%; background: #f59e0b;">5/7天成功</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="alert alert-success" style="margin-top: 20px;">
+                    <strong>💪 记住：</strong>进步比完美更重要。即使只完成70%，也比0%好很多！
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- 浮动按钮 -->
+    <div class="float-button" onclick="showQuickActions()">
+        ⚡
+    </div>
+    
+    <script>
+        // 标签页切换
+        function showTab(tabName) {
+            const panels = document.querySelectorAll('.tab-panel');
+            panels.forEach(panel => {
+                panel.classList.remove('active');
+            });
+            
+            const tabs = document.querySelectorAll('.tab');
+            tabs.forEach(tab => {
+                tab.classList.remove('active');
+            });
+            
+            document.getElementById(tabName).classList.add('active');
+            event.target.closest('.tab').classList.add('active');
+        }
+        
+        // 根据当前时间高亮时间块
+        function highlightCurrentTime() {
+            const now = new Date();
+            const hours = now.getHours();
+            const minutes = now.getMinutes();
+            const currentTime = hours * 60 + minutes;
+            
+            // 这里可以根据实际时间高亮对应的时间块
+        }
+        
+        // 任务完成统计
+        function updateTaskStats() {
+            const checkboxes = document.querySelectorAll('.task-checkbox:checked');
+            const total = document.querySelectorAll('.task-checkbox').length;
+            const completed = checkboxes.length;
+            
+            // 更新进度显示
+        }
+        
+        // 快速操作
+        function showQuickActions() {
+            alert('快速操作：\n1. 设置21:00提醒\n2. 开始番茄钟\n3. 查看今日任务\n4. 记录情绪');
+        }
+        
+        // 保存数据到本地
+        function saveProgress() {
+            const tasks = [];
+            document.querySelectorAll('.task-checkbox').forEach((cb, index) => {
+                tasks.push({
+                    id: index,
+                    checked: cb.checked
+                });
+            });
+            localStorage.setItem('dailyTasks', JSON.stringify(tasks));
+        }
+        
+        // 加载保存的进度
+        function loadProgress() {
+            const saved = localStorage.getItem('dailyTasks');
+            if (saved) {
+                const tasks = JSON.parse(saved);
+                tasks.forEach(task => {
+                    const cb = document.querySelectorAll('.task-checkbox')[task.id];
+                    if (cb) cb.checked = task.checked;
+                });
+            }
+        }
+        
+        // 初始化
+        document.addEventListener('DOMContentLoaded', function() {
+            highlightCurrentTime();
+            loadProgress();
+            
+            // 为所有checkbox添加事件监听
+            document.querySelectorAll('.task-checkbox').forEach(cb => {
+                cb.addEventListener('change', saveProgress);
+            });
+        });
+        
+        // 每分钟更新一次时间高亮
+        setInterval(highlightCurrentTime, 60000);
+    </script>
+</body>
+</html>
